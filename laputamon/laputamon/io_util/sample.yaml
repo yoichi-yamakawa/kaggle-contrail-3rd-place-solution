@@ -1,0 +1,4 @@
+    exp_name: sample
+    gpus: 2
+    precision: 32
+    

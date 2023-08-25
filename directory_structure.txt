@@ -1,0 +1,6 @@
+./laputamon
+./scripts
+./scripts/training
+./scripts/training/config
+./dependencies
+./comp_source

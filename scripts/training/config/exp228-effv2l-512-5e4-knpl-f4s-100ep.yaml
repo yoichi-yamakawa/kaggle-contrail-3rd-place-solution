@@ -1,0 +1,136 @@
+# general settings
+exp_type: starter
+debug: True
+
+# phase: train
+n_folds: 5
+fold_index: &fold_index 0
+max_epochs: &max_epochs 100
+
+# cpu/gpu
+gpus: 1
+sync_batchnorm: False
+reload_dataloaders_every_n_epochs: 1
+sampling_frame4: True
+train_on_multi_frames: True
+precision: 16-mixed
+num_workers: 16
+
+# dataset
+train_batch_size: 16
+accumulate_grad_batches: 1 # effective batch size = train_batch_size * accumulate_grad_batches * GPU_NUM
+valid_batch_size: 32
+test_batch_size: 32
+pseudo_label_dir: p20-contrail/pseudo-label/
+train_dataset_dir: p20-contrail/
+train_image_dir: p20-contrail/train/
+valid_image_dir: p20-contrail/valid/
+
+test_dataset_dir: p20-contrail/test/
+test_image_dir:  p20-contrail/test/
+
+dataset_config: 
+  name: ContrailDatasetPLV1
+  params:
+    get_mask_frame_only: True
+    use_individual_mask: True
+    normalize_method: mean_std
+
+transform_config:
+  name: Sample
+  train_transform: 
+    name: BaseTransformV8
+    transform_config:
+      params:
+        HorizontalFlip:
+          p: 0.0
+        VerticalFlip:
+          p: 0.0
+        ShiftScaleRotate:
+          shift_limit: 0.05
+          scale_limit: 0.1
+          rotate_limit: 20
+          p: 0.3
+        RandomResizedCrop:
+          height: 512
+          width: 512
+          scale:
+            - 0.5
+            - 1.0
+          ratio:
+            - 0.80
+            - 1.25
+          p: 0.7
+        Resize:
+          height: 512
+          width: 512
+        additional_targets: 1
+
+  valid_transform: 
+    name: BaseTransformV1Resize
+    transform_config:
+      params:
+        HorizontalFlip:
+          p: 0.0
+        VerticalFlip:
+          p: 0.0
+        Resize:
+          height: 512
+          width: 512
+
+
+  test_transform: 
+    name: BaseTransformV1Resize
+    transform_config:
+      params:
+        HorizontalFlip:
+          p: 0.0
+        VerticalFlip:
+          p: 0.0
+        Resize:
+          height: 512
+          width: 512
+
+# model
+pl_module: BasePLM
+model_dir: p20-contrail/output
+
+model_config: 
+  name: UNetBaseV1 
+  # gradient_clip_val: 0.7
+  params:
+    model_params:
+      from_pretrained: True
+      backbone: tf_efficientnetv2_l.in21k_ft_in1k
+      in_channel_num: 6
+      
+monitor: val_kaggle_score
+stochastic_weight_avg: False
+
+# loss
+loss_config: 
+  name: DiceBCEWithLogitsLossV2 
+  params:
+    mode: binary
+    base_weight: 0.5
+    aux_weight: 0.5
+    base_bce_weight: 0.0
+    aux_bce_weight: 0.5
+
+# lr scheduler
+lr_scheduler_config: 
+  name: cosine_schedule_with_warmup 
+  interval: step
+  lr_scheduler_params: 
+    num_cycles: 0.5
+    max_epochs: *max_epochs
+    warmup_steps_ratio: 0.10
+
+# optimizer
+optimizer_config: 
+  name: AdamW
+  optimizer_params: 
+    lr: 5.0e-4
+
+# logger
+logger: wandb

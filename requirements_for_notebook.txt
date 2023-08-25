@@ -1,0 +1,11 @@
+pytorch-lightning==2.0.2
+segmentation-models-pytorch
+dacite
+fire 
+./laputamon
+albumentations
+timm
+pytorch-lightning-bolts
+pretrainedmodels
+efficientnet-pytorch
+pfio==2.4.0
